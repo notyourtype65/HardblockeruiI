@@ -1,0 +1,25 @@
+name: Build APK
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip HardBlocker-ui.zip
+      - run: |
+          echo "android.useAndroidX=true" > HardBlocker/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2g" >> HardBlocker/gradle.properties
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+      - run: cd HardBlocker && gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HardBlocker-apk
+          path: HardBlocker/app/build/outputs/apk/debug/app-debug.apk
